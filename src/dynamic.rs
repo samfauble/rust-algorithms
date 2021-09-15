@@ -148,6 +148,12 @@ pub mod dynamic_algos {
     }
 
     /**
+     * The Knapsack problem represents situations where an entity has an array of options 
+     * to choose from, but is unable to select all of them due to resource constraints. Therefore,
+     * the entity must choose a selection of options that fits the resource constraint and
+     * maximizes value or benefit. This may be useful for resource scheduling/planning,
+     * what to take on vacation, what crops to plant in a field of limited size, etc.
+     * 
      * This is an implementation for a dynamic programming solution to the Knapsack Problem
      * where there is no repetition. In other words, the item array contains items that
      * can be used only once. 
@@ -196,6 +202,16 @@ pub mod dynamic_algos {
         solution_space[items.len() as usize][capacity as usize]
     }
 
+    /**
+     * This is an implementation for a dynamic programming solution to the Knapsack Problem
+     * where there is repetition. In other words, the item array contains items that
+     * can be used an unlimited number of times. 
+     * 
+     * The runtime for this solution is O(nB) where:
+     * - n is the number of items in the item array
+     * - B is the available weight
+     * 
+    */
     pub fn knapsack_with_rep(items: &[Item<i32>], capacity: i32) -> i32 {
         let mut solution_space: Vec<i32> = Vec::new();
         
