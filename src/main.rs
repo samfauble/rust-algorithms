@@ -21,6 +21,7 @@ fn main() {
     println!("{}", lis_answer);
 
     //knapsack no rep
+    //knapsack with rep
     let item1 = Item::new(3, 1);
     let item2 = Item::new(6, 4);
     let item3 = Item::new(7, 3);
@@ -28,5 +29,6 @@ fn main() {
     let item5 = Item::new(4, 1);
     let item_arr = [item1, item2, item3, item4, item5];
     let no_rep_answer = dynamic_algos::knapsack_no_rep(&item_arr, 8);
-    println!("{}", no_rep_answer);
+    let with_rep_answer = dynamic_algos::knapsack_no_rep(&item_arr, 8);
+    println!("{}, {}", no_rep_answer, with_rep_answer);
 }

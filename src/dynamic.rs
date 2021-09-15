@@ -1,6 +1,9 @@
 
 pub mod dynamic_algos {
 
+    /**
+     * Items for the Knapsack problem
+    */
     pub struct Item <T> {
         value: T,
         weight: T
@@ -144,6 +147,16 @@ pub mod dynamic_algos {
         lcs_table[string_1.len() - 1][string_2.len() - 1]
     }
 
+    /**
+     * This is an implementation for a dynamic programming solution to the Knapsack Problem
+     * where there is no repetition. In other words, the item array contains items that
+     * can be used only once. 
+     * 
+     * The runtime for this solution is O(nB) where:
+     * - n is the number of items in the item array
+     * - B is the available weight
+     * 
+    */
     pub fn knapsack_no_rep(items: &[Item<i32>], capacity: i32) -> i32 {
         let mut solution_space: Vec<Vec<i32>> = Vec::new();
         let mut row: Vec<i32> = Vec::new();
@@ -181,5 +194,28 @@ pub mod dynamic_algos {
         }
 
         solution_space[items.len() as usize][capacity as usize]
+    }
+
+    pub fn knapsack_with_rep(items: &[Item<i32>], capacity: i32) -> i32 {
+        let mut solution_space: Vec<i32> = Vec::new();
+        
+        //populate solution space
+        for _b in 0..capacity {
+            solution_space.push(0);
+        }
+
+        for b in 0..capacity {
+            for i in 0..items.len() {
+                let new_val = items[i].value + solution_space[(b - items[i].weight) as usize];
+                let weight_low_enough: bool = items[i].weight < b;
+                let new_val_higher: bool = solution_space[i] < new_val;
+
+                if weight_low_enough && new_val_higher {
+                    solution_space[b as usize] = new_val;
+                }
+            }
+        }
+
+        solution_space[capacity as usize]
     }
 }
