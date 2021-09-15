@@ -31,4 +31,9 @@ fn main() {
     let no_rep_answer = dynamic_algos::knapsack_no_rep(&item_arr, 8);
     let with_rep_answer = dynamic_algos::knapsack_no_rep(&item_arr, 8);
     println!("{}, {}", no_rep_answer, with_rep_answer);
+
+    //chain matrix multiply
+    let m_arr = [2, 4, 6, 7, 4, 3, 3, 2, 5, 6, 8, 2, 2];
+    let cost_answer = dynamic_algos::chain_matrix_multiply(&m_arr);
+    println!("{}", cost_answer);
 }

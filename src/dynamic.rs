@@ -234,4 +234,47 @@ pub mod dynamic_algos {
 
         solution_space[capacity as usize]
     }
+
+    /**
+     * The chain matrix multiplication algorithm is used to calculate the minimum cost of
+     * multiplying a chain of matrices M1 x M2 x ,,, x Mn together. 
+     * 
+     * The input to this algorithm is an array of matrix sizes [m1, m2,...mn].
+     * Given two matrices A1 and A2 where A1 x A2, the column size of A1 must equal
+     * the row size of A2, the following must apply to the array of matrix sizes:
+     *  M1 = m1 x m2
+     *  M2 = m2 x m3
+     *  ...
+     *  Mn = m(n-1) x mn
+    */
+    pub fn chain_matrix_multiply(m_arr: &[i32]) -> i32{
+        let mut solution_space: Vec<Vec<i32>> = Vec::new();
+
+        //populate solution space
+        for i in 0..m_arr.len(){
+            for j in 0..m_arr.len() {
+                solution_space[i][j] = i32::MAX;
+            }
+        }
+
+        //Iterations move diagonally 
+        //from top to botton and from left to right
+        for s in 1..(m_arr.len() - 1) {                         //width iterator
+            for i in 1..(m_arr.len() - s) {                     //depth iterator
+                let j = i + s;
+                for l in i..(j-1) {                             //partition iterator
+                    let current_val = 
+                        (m_arr[(i-1)] * m_arr[l] * m_arr[j]) +  //combine left and right subtree
+                        solution_space[i][l] +                  //left subtree
+                        solution_space[l + 1][j];               //right subtree
+
+                    if solution_space[i][j] > current_val {
+                        solution_space[i][j] = current_val;
+                    }
+                }
+            }
+        }
+
+        solution_space[1][m_arr.len()]                          //last entry
+    }
 }
