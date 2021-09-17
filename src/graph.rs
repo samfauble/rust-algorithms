@@ -1,4 +1,6 @@
 pub mod graph_algos {
+    extern crate queues;
+    use queues::*;
     use std::collections::BTreeSet;
     use std::cmp::{Ord, Eq, PartialEq, PartialOrd};
     use std::ops::Index;
@@ -143,8 +145,43 @@ pub mod graph_algos {
         graph.vertices
     }
 
-    pub fn bfs() {
-
+    /**
+     * Breadth-first seach (BFS) is another way to search graphs similar to DFS. 
+     * The difference between DFS and BFS is that BFS searches one complete level of vertices
+     * of the graph from left to right before moving down to the next level.
+     * Also unlike DFS, BFS takes both a graph and a starting vertex.
+     * 
+     * The output of this BFS implementation outputs an array of distances
+     * between the starting vertex and every other vertex The indices of the distances array
+     * match with the indices of the vertices in the graph struct.
+     * 
+     * BFS is better suited to search for the shortest path between two points.
+     * Dijkstra's algorithm is a variation of BFS.dynamic
+     */
+    pub fn bfs(graph: &mut Graph, start: usize) {
+        
+        //Initialize data to be used
+        let mut distances: Vec<i32> = Vec::new();
+        for _i in 0..graph.vertices.len() - 1 {
+            distances.push(i32::MAX);
+        }
+        distances[start] = 0;
+        let mut q: Queue<usize> = Queue::new();
+        
+        //visit each vertex level-by-level
+        while q.size() > 0 {
+            let u = q.remove().unwrap();
+            let outgoing_edges = graph.edges.iter().filter(|e| {e.from == graph.vertices[u as usize]});
+        
+            for edge in outgoing_edges {
+                let v_to_index = graph.vertices.iter().position(|&r| r == edge.to).unwrap();
+                
+                if distances[v_to_index] == i32::MAX {
+                    q.add(v_to_index).unwrap();
+                    distances[v_to_index] = distances[u] + 1;
+                }
+            }
+        }
     }
 
     pub fn bellman_ford() {
