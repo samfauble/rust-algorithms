@@ -1,1 +1,1 @@
-C:\Users\samfa\Documents\rustPractice\algorithms\target\debug\algorithms.exe: C:\Users\samfa\Documents\rustPractice\algorithms\src\main.rs
+C:\Users\samfa\Documents\rustPractice\algorithms\target\debug\algorithms.exe: C:\Users\samfa\Documents\rustPractice\algorithms\src\dynamic.rs C:\Users\samfa\Documents\rustPractice\algorithms\src\main.rs
