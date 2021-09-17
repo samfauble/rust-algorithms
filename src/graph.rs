@@ -159,7 +159,6 @@ pub mod graph_algos {
      * Dijkstra's algorithm is a variation of BFS.dynamic
      */
     pub fn bfs(graph: &mut Graph, start: usize) {
-        
         //Initialize data to be used
         let mut distances: Vec<i32> = Vec::new();
         for _i in 0..graph.vertices.len() - 1 {
@@ -184,8 +183,50 @@ pub mod graph_algos {
         }
     }
 
-    pub fn bellman_ford() {
+    /**
+     * Dijkstra's algorithm is used under the assumption that all edge weights are positive.
+     * If the weights are negative, however, that algorithm can't be used reliably.
+     * The Bellman-Ford algorithm, like Dijstra's solves the shortest path problem.
+     * However, This solution does not assume non-negative weight values.
+     * If all weight values are indeed positive, though, Dijkstra's is faster than this algorithm.
+     * Bellman-Ford solves for the path between a given starting vertex all all other vertices
+     */
+    pub fn bellman_ford(graph: Graph, start: usize) -> Vec<i32> {
+        let mut distances: Vec<Vec<i32>> = Vec::new();
+        let mut answers: Vec<i32> = Vec::new();
 
+        //populate starting values for distances array
+        //and base cases for distances[0][v]
+        for _e in 0..graph.edges.len() - 1 {
+            let mut row: Vec<i32> = Vec::new();
+            for _v in 0..graph.vertices.len() - 1 {
+                row.push(i32::MAX);
+            } 
+            distances.push(row);
+        }
+
+        //base case for start vertex
+        distances[0][start] = 0;
+
+        for e in 1..graph.edges.len() - 1 {
+            for z in 0..graph.vertices.len() - 1 {
+                distances[e][z] = distances[e -1][z];
+                let incoming_edges = graph.edges.iter().filter(|edge| {edge.to == graph.vertices[z]});
+                //for all edges y -> z
+                for ie in incoming_edges {
+                    let y = graph.vertices.iter().position(|&r| r == ie.from).unwrap();
+                    if distances[e][z] > distances[e-1][y] + (ie.weight as i32) {
+                        distances[e][z] = distances[e-1][y] + (ie.weight as i32);
+                    }
+                }
+            }
+        }
+
+        //populate the answers array
+        for col in 0..distances[graph.edges.len() - 1].len() - 1 {
+            answers.push(distances[graph.edges.len() - 1][col]);
+        }
+        answers
     }
 
     pub fn floyd_warshall() {
