@@ -190,6 +190,8 @@ pub mod graph_algos {
      * However, This solution does not assume non-negative weight values.
      * If all weight values are indeed positive, though, Dijkstra's is faster than this algorithm.
      * Bellman-Ford solves for the path between a given starting vertex all all other vertices
+     * 
+     * Runtime: O(nm) where n = # vertices m = # edges
      */
     pub fn bellman_ford(graph: Graph, start: usize) -> Vec<i32> {
         let mut distances: Vec<Vec<i32>> = Vec::new();
@@ -229,8 +231,58 @@ pub mod graph_algos {
         answers
     }
 
-    pub fn floyd_warshall() {
 
+    /**
+     * Floyd-Warshall is similar to the Bellman-Ford algorithm above in that it can be
+     * used as a fallback from Dijkstra's to find the shortest path where edges may be negative. 
+     * The distinctive featur of Floyd-Warshall is that it solves for all vertex pairs.
+     * Where Bellman-Ford solves for a single starting vertex, this algorithm solves for all
+     * vertices as starting points to all vertices as endpoints.
+     * 
+     * This distinction makes Floyd-Warshall a better option if searching for negative weight cycles
+     * in a graph as Bellman-Ford would only be able to find a negative weight cycle if it was
+     * accessible from the starting point.
+     * 
+     * Runtime: O(n^3)
+     */
+    pub fn floyd_warshall(graph: Graph) -> Vec<Vec<i32>> {
+        let mut distances: Vec<Vec<Vec<i32>>> = Vec::new();
+        let mut answers: Vec<Vec<i32>> = Vec::new();
+
+        for s in 0..graph.vertices.len() - 1 {
+            for t in 0..graph.vertices.len() - 1 {
+                let s_vertex = graph.vertices[s];
+                let t_vertex = graph.vertices[t];
+                let edge = graph.edges.iter().find(|e| {e.from == s_vertex && e.to == t_vertex});
+                match edge {
+                    Some(ed) => distances[0][s][t] = ed.weight as i32,
+                    None =>  distances[0][s][t] = i32::MAX
+                }
+            }
+        }
+
+        for i in 0..graph.vertices.len() - 1 {
+            for s in 0..graph.vertices.len() - 1 {
+                for t in 0..graph.vertices.len() - 1 {
+                    let nonexistent_path_value = distances[i-1][s][t];
+                    let existing_path_value = distances[i-1][s][i] + distances[i-1][i][t];
+                
+                    //If the path exists, take that path value
+                    if nonexistent_path_value <= existing_path_value { 
+                        distances[i][s][t] = nonexistent_path_value;
+                    } else {
+                        distances[i][s][t] = existing_path_value;
+                    }
+                }
+            }
+        }
+        for a in 0..graph.vertices.len() - 1 {
+            for b in 0..graph.vertices.len() - 1 {
+                answers[a][b] = distances[graph.vertices.len() - 1][a][b];
+            }
+        }
+
+        answers
     }
 
     pub fn two_sat() {
@@ -238,6 +290,10 @@ pub mod graph_algos {
     }
 
     pub fn kruskal_mst() {
+
+    }
+
+    pub fn page_rank() {
 
     }
 }
