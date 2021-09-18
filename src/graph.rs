@@ -47,30 +47,10 @@ pub mod graph_algos {
     }
 
     impl Graph {
-        pub fn new(edges: &Vec<Edge>) -> Graph {
-            let mut set = BTreeSet::new();
-            let mut vertices = Vec::new();
-            let mut new_edges = Vec::new();
-            
-            //populate new_edges
-            //get all unique values for vertex ids
-            for e in edges {
-                if !set.contains(&e.from) {
-                    set.insert(e.from);
-                }
-                if !set.contains(&e.to) {
-                    set.insert(e.to);
-                }
-            }
-
-            //populate vertices arr
-            for elem in set {
-                vertices.push(elem);
-            }
-
+        pub fn new(edges: Vec<Edge>, vertices: Vec<Vertex>) -> Graph {
             Graph {
                 vertices,
-                edges: new_edges
+                edges
             }
         }
     }
@@ -147,6 +127,11 @@ pub mod graph_algos {
         graph.vertices
     }
 
+    /**
+     * An implementation of DFS for undirected graphs.
+     * This implementation is used to determine the SCC membership of all vertices.
+     * The definition for SCCs is located in the function description for find_scc
+     */
     pub fn dfs_undirected(graph: Graph) -> Vec<Vertex> {
         let mut current_connected_components = 0;
         let mut vertex_stack: Vec<Vertex> = vec![];
@@ -345,17 +330,33 @@ pub mod graph_algos {
         answers
     }
 
-    pub fn find_scc(graph: Graph) {
+    /**
+     * This algorithm is used to find the SCCs of a directed graph
+     * An SCC(strongly-connected component) is a cluster of vertices where:
+     * All member vertices are accessible to one another
+     * 
+     * The meta-graph of a directed graph with SCCs is an undirected graph
+     * This implementation returns a list of vertices with an assigned SCC number.
+     * All vertices with the same SCC number are in the same SCC.
+     */
+    pub fn find_scc(graph: Graph) -> Vec<Vertex> {
         let reversed_edges = graph.edges.iter().map(|edge| {
             let to = edge.to;
             let from = edge.from;
             Edge::new(to, from, edge.weight)
         }).collect::<Vec<Edge>>();
 
-        let reversed_graph = Graph::new(&reversed_edges);
-        let rank_ordered_vertices = dfs(reversed_graph)
-                                    .sort_by(|a, b| {b.post_rank.cmp(&a.post_rank)});  //sort in descending order
-        //run dfs (for undirected graphs) on graph with ordered vertices 
+        //Get post-order rank of reversed graph
+        let reversed_graph = Graph::new(reversed_edges, graph.vertices);
+        let mut ranked_vertices = dfs(reversed_graph);
+        //sort vertices in descending order
+        ranked_vertices.sort();  
+        ranked_vertices.reverse();
+
+        //run dfs (for undirected graphs) on original graph with ordered vertices 
+        //return vertices with scc number
+        let ordered_v_graph = Graph::new(graph.edges, ranked_vertices);
+        dfs_undirected(ordered_v_graph)    
     }
 
     pub fn two_sat() {
