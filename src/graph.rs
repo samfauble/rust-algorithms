@@ -10,7 +10,8 @@ pub mod graph_algos {
     pub struct Vertex {
         id: i32,
         pre_rank: i32,
-        post_rank: i32
+        post_rank: i32,
+        scc_num: i32
     }
 
     impl Vertex {
@@ -18,7 +19,8 @@ pub mod graph_algos {
             Vertex {
                 id: num,
                 pre_rank: 0,
-                post_rank: 0
+                post_rank: 0,
+                scc_num: 0
             }
         }
     }
@@ -45,7 +47,7 @@ pub mod graph_algos {
     }
 
     impl Graph {
-        pub fn new(edges: &[Edge]) -> Graph {
+        pub fn new(edges: &Vec<Edge>) -> Graph {
             let mut set = BTreeSet::new();
             let mut vertices = Vec::new();
             let mut new_edges = Vec::new();
@@ -79,33 +81,25 @@ pub mod graph_algos {
      * As the name implies, DFS searches the graph by moving in a top to bottom fashion
      * The commented-out parts of the code are used for undirected graphs.
      * There will be comments next to the lines specifically for directed graphs
+     * 
+     * This current implmentation of DFS returns vertices with pre-order and post-order 
+     * rankings, denoting the relative order in which they were first visited (pre-order) 
+     * and in which all their child vertices were finished being visited (post-order)  
     */
     pub fn dfs(graph: Graph) -> Vec<Vertex> {
-        //let mut current_connected_components = 0;
-        //let mut connected_components_amount: Vec<i32> = Vec::new(); //make entry for each vertex
-        let mut clock = 1; // part of directed graphs
-        let mut visited: Vec<bool> = Vec::new();
-        let mut vertex_stack: Vec<Vertex> = vec![graph.vertices[0]];
-        
-        for _i in &graph.vertices {
-            visited.push(false);
-        }
+        let mut clock = 1;
+        let mut vertex_stack: Vec<Vertex> = vec![];
         
         //helper closure - visit the next vertex
-        let mut visit = |z: usize| -> Result<usize, ()> {
+        let visit = |z: usize| -> Result<usize, ()> {
             //get current vertex
             let current = graph.vertices[z];
-            //connected_components_amount[z] = current_connected_components
+ 
             //find the outgoing edges of the current vertex
             let mut outgoing = graph.edges.iter().filter(|x| {x.to == current});
-            let mut index: usize = 0;
             
             //find a destination vertex from outgoing edges that is unvisited
-            let e = outgoing.find(|edge| {
-                let v = edge.to;
-                index = graph.vertices.iter().position(|&r| r == v).unwrap();
-                !visited[index]
-            });
+            let e = outgoing.find(|edge| {edge.to.pre_rank == 0});
             let next_vertex = match e {
                 Some(eg) => eg.to,
                 None => Vertex::new(-1)
@@ -113,35 +107,101 @@ pub mod graph_algos {
 
             //return the index of the next vertex to be processed
             if next_vertex.id > 0 {
-                visited[index] = true;
+                let index = graph.vertices.iter().position(|&r| r == next_vertex).unwrap();
                 Ok(index)
             } else {
                 Err(())
             }
         };
 
-        while !vertex_stack.is_empty() {
-            //current vertex being visited
-            let mut current_vertex = vertex_stack[vertex_stack.len() - 1];
-            let index = graph.edges.iter().position(|r| r.to == current_vertex).unwrap();
+        for k in 0..graph.vertices.len() - 1 {
+            if graph.vertices[k].pre_rank == 0 {        //if this vertex hasn't been visited yet, 
+                vertex_stack.push(graph.vertices[k]);   //then visit all accessible vertices
 
-            match visit(index) {
-                Ok(i) => {
-                    //if vertex has an unvisited neighbor, add an unvisited neighbor
-                    let mut next_vertex = graph.vertices[i];
-                    vertex_stack.push(next_vertex);
-                    next_vertex.pre_rank = clock; //part of directed graphs
-                    clock += 1;
-                },
-                Err(()) => {
-                    //when we reach a leaf vertex, pop from stack
-                    current_vertex.post_rank = clock; //part of directed graphs
-                    clock += 1;
-                    vertex_stack.pop();
+                while !vertex_stack.is_empty() {        //explore accessible vertices
+                    //current vertex being visited
+                    let mut current_vertex = vertex_stack[vertex_stack.len() - 1]; //end of stack
+                    let index = graph.edges.iter().position(|r| r.to == current_vertex).unwrap();
+                    if current_vertex.pre_rank == 0 {
+                        current_vertex.pre_rank = clock;
+                        clock += 1;
+                    }
+                   
+                    match visit(index) {
+                        Ok(i) => {
+                            //if vertex has an unvisited neighbor, add an unvisited neighbor
+                            let next_vertex = graph.vertices[i];
+                            vertex_stack.push(next_vertex);
+                        },
+                        Err(()) => {
+                            //when a leaf vertex is reached, assign its post-order rank 
+                            //and pop from stack
+                            current_vertex.post_rank = clock;
+                            clock += 1;
+                            vertex_stack.pop();
+                        }
+                     }
                 }
-             }
+            }
         }
+        graph.vertices
+    }
 
+    pub fn dfs_undirected(graph: Graph) -> Vec<Vertex> {
+        let mut current_connected_components = 0;
+        let mut vertex_stack: Vec<Vertex> = vec![];
+        
+        //helper closure - visit the next vertex
+        let visit = |z: usize| -> Result<usize, ()> {
+            //get current vertex
+            let current = graph.vertices[z];
+ 
+            //find the outgoing edges of the current vertex
+            let mut outgoing = graph.edges.iter().filter(|x| {x.to == current});
+            
+            //find a destination vertex from outgoing edges that is unvisited
+            let e = outgoing.find(|edge| {edge.to.scc_num == 0});
+            let next_vertex = match e {
+                Some(eg) => eg.to,
+                None => Vertex::new(-1)
+            };
+
+            //return the index of the next vertex to be processed
+            if next_vertex.id > 0 {
+                let index = graph.vertices.iter().position(|&r| r == next_vertex).unwrap();
+                Ok(index)
+            } else {
+                Err(())
+            }
+        };
+
+        for k in 0..graph.vertices.len() - 1 {
+            if graph.vertices[k].scc_num == 0 {         //if this vertex hasn't been visited yet, 
+                vertex_stack.push(graph.vertices[k]);   //then visit all accessible vertices
+                current_connected_components += 1;      //marks the start of a new SCC
+
+                while !vertex_stack.is_empty() {        //explore accessible vertices
+                    //current vertex being visited
+                    let mut current_vertex = vertex_stack[vertex_stack.len() - 1]; //end of stack
+                    let index = graph.edges.iter().position(|r| r.to == current_vertex).unwrap();
+                    if current_vertex.scc_num == 0 {
+                        current_vertex.scc_num = current_connected_components;
+                    }
+                   
+                    match visit(index) {
+                        Ok(i) => {
+                            //if vertex has an unvisited neighbor, add an unvisited neighbor
+                            let next_vertex = graph.vertices[i];
+                            vertex_stack.push(next_vertex);
+                        },
+                        Err(()) => {
+                            //when a leaf vertex is reached, pop from stack
+                            vertex_stack.pop();
+                        }
+                     }
+                }
+            }
+        }
         graph.vertices
     }
 
@@ -283,6 +343,19 @@ pub mod graph_algos {
         }
 
         answers
+    }
+
+    pub fn find_scc(graph: Graph) {
+        let reversed_edges = graph.edges.iter().map(|edge| {
+            let to = edge.to;
+            let from = edge.from;
+            Edge::new(to, from, edge.weight)
+        }).collect::<Vec<Edge>>();
+
+        let reversed_graph = Graph::new(&reversed_edges);
+        let rank_ordered_vertices = dfs(reversed_graph)
+                                    .sort_by(|a, b| {b.post_rank.cmp(&a.post_rank)});  //sort in descending order
+        //run dfs (for undirected graphs) on graph with ordered vertices 
     }
 
     pub fn two_sat() {
