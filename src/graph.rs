@@ -1,10 +1,35 @@
 pub mod graph_algos {
     extern crate queues;
     use queues::*;
-    use std::collections::BTreeSet;
     use std::cmp::{Ord, Eq, PartialEq, PartialOrd};
-    use std::ops::Index;
-    use std::ptr::null;
+
+    pub struct Answer {
+        boolean: bool,
+        vertex: Vertex
+    }
+
+    pub trait Complement {
+        fn new_complement(id:i32) -> Vec<Vertex> {
+            if id == 0 {
+                panic!("Id cannot equal 0");
+            }
+
+            let first = Vertex {
+                id,
+                pre_rank: 0,
+                post_rank: 0,
+                scc_num: 0
+            };
+            let second = Vertex {
+                id: -id,
+                pre_rank: 0,
+                post_rank: 0,
+                scc_num: 0
+            };
+
+            vec![first, second]
+        }
+    }
     
     #[derive(Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Default)]
     pub struct Vertex {
@@ -14,8 +39,10 @@ pub mod graph_algos {
         scc_num: i32
     }
 
+    impl Complement for Vertex {}
+
     impl Vertex {
-        pub fn new(num: i32) -> Vertex {
+        pub fn new(num: i32) -> Self {
             Vertex {
                 id: num,
                 pre_rank: 0,
@@ -32,7 +59,7 @@ pub mod graph_algos {
     }
 
     impl Edge {
-        pub fn new(v1: Vertex, v2: Vertex, weight: f32) -> Edge {
+        pub fn new(v1: Vertex, v2: Vertex, weight: f32) -> Self {
             Edge {
                 from: v1,
                 to: v2,
@@ -47,10 +74,28 @@ pub mod graph_algos {
     }
 
     impl Graph {
-        pub fn new(edges: Vec<Edge>, vertices: Vec<Vertex>) -> Graph {
+        pub fn new(edges: Vec<Edge>, vertices: Vec<Vertex>) -> Self {
             Graph {
                 vertices,
                 edges
+            }
+        }
+    }
+
+    pub struct CNF {
+        formula: Vec<Vec<Vertex>>
+    }
+
+    impl CNF {
+        pub fn new(formula: Vec<Vec<Vertex>>) -> Self {
+            formula.iter().for_each(|pair| {
+                if pair.len() > 2 {
+                    panic!("Complement subarrays must not be greater than 2 in length.");
+                }
+            });
+            
+            CNF {
+                formula
             }
         }
     }
@@ -359,8 +404,96 @@ pub mod graph_algos {
         dfs_undirected(ordered_v_graph)    
     }
 
-    pub fn two_sat() {
+    /**
+     * Satisfiability (or SAT for short) begs the general question 
+     * of whether or not a set of boolean variables in an expression can be assigned 
+     * values in such a way to produce "True" as a result.
+     * 
+     * General notation and definition notes:
+     * conjunctive normal form (CNF) - a formula for writing expressions for boolean logic.
+     * The following is an example of CNF:
+     * (x || x2) && (x3 || x1) && (x2 || x4) && (x3)
+     * Notice that the parenthesis sets (from herein referred to as clauses) 
+     * only contain OR gates, and AND gates are located between clauses.
+     * Also notice that there are no more than two variables inside each clause.
+     * This specific example is therefore a 2-SAT problem
+     * 
+     * For this specific implementation, each complement pair is given the same id
+     * in absolute value; however, one value is positive, and its complement is negative.
+     * The absolute value is used to identify them as a pair, and the sign is used to 
+     * indicate them as complements.
+     * 
+     * This is an algorithm for solving the k-SAT problem where k = 2
+     * This algorithm assumes ALL clauses are EXACTLY 2 variables in length
+     * The Satisfiability problem (SAT for short) is the following:
+     * 
+     * Given a formula f in conjunctive normal form (CNF) with n variables and m clauses
+     */
+    pub fn two_sat(cnf: CNF) -> Option<Vec<Answer>> {
+        let mut vertices: Vec<Vertex> = Vec::new();
+        let mut edges: Vec<Edge> = Vec::new();
+        let mut booleans: Vec<Answer> = vec![];
 
+        //populate the vertices for the graph
+        //populate the answers array
+        cnf.formula.iter().for_each(|pair| {
+             vertices.push(pair[0]);
+             vertices.push(pair[1]);
+             booleans.push(Answer{boolean: false, vertex: pair[0]});
+             booleans.push(Answer{boolean: false, vertex: pair[1]});
+        });
+
+        //populate the edges for the graph
+        //For clause (a || b), the edges are a -> -b and b -> -a
+        cnf.formula.iter().for_each(|pair| {
+            let first = pair[0];
+            let second = pair[1];
+
+            let from_first = vertices.iter().find(|vertex| {
+                vertex.id.abs() == second.id.abs() && vertex.id.is_negative() != first.id.is_negative()
+            }).unwrap();
+
+            let from_second = vertices.iter().find(|vertex| {
+                vertex.id.abs() == first.id.abs() && vertex.id.is_negative() != second.id.is_negative()
+            }).unwrap();
+
+            let edge_first = Edge {from: first, to: *from_first, weight: 0 as f32};
+            let edge_second = Edge {from: second, to: *from_second, weight: 0 as f32};
+
+            edges.push(edge_first);
+            edges.push(edge_second);
+        });
+
+        let g = Graph::new(edges, vertices);
+        let scc_vertices = find_scc(g);     //find scc groupings
+
+        //Go through each SCC from sink to source
+        //Satisfy all of the variables in each SCC
+        let num_sccs = scc_vertices[0].scc_num;
+
+        for i in 1..num_sccs {
+            let current_scc = scc_vertices.iter().filter(|v| {v.scc_num == i});
+            current_scc.for_each(|vertex| {
+                let j = booleans.iter().position(|b| {b.vertex == *vertex}).unwrap();
+                if vertex.id > 0 {
+                    booleans[j].boolean = true;
+                }
+            });
+        }
+
+        //Evaluate the solvability of the formula
+        let mut is_solvable = true;
+        booleans.iter().for_each(|bl| {
+            if (bl.vertex.id > 0 && !bl.boolean) || (bl.vertex.id < 0 && bl.boolean) {
+                is_solvable = false;
+            }
+        });
+
+        if is_solvable {
+            Some(booleans)
+        } else {
+            Option::None
+        }
     }
 
     pub fn kruskal_mst() {
