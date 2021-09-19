@@ -1,10 +1,13 @@
-pub mod graph_algos {
+
     extern crate queues;
     extern crate petgraph;
+    extern crate priority_queue;
     use queues::*;
     use std::cmp::{Ord, Eq, PartialEq, PartialOrd};
     use petgraph::unionfind::UnionFind;
     use petgraph::matrix_graph::IndexType;
+    use priority_queue::PriorityQueue;
+    use std::hash::Hash;
 
     //Answer element for the 2-SAT algorithm
     pub struct Answer {
@@ -35,9 +38,9 @@ pub mod graph_algos {
         }
     }
     
-    #[derive(Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Default)]
+    #[derive(Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Default, Hash)]
     pub struct Vertex {
-        id: i32,
+        pub id: i32,
         pre_rank: i32,
         post_rank: i32,
         scc_num: i32
@@ -58,9 +61,9 @@ pub mod graph_algos {
 
     #[derive(Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Default)]
     pub struct Edge {
-        from: Vertex,
-        to: Vertex,
-        weight: i32
+        pub from: Vertex,
+        pub to: Vertex,
+        pub weight: i32
     }
 
     impl Edge {
@@ -74,8 +77,8 @@ pub mod graph_algos {
     }
 
     pub struct Graph {
-        vertices: Vec<Vertex>,
-        edges: Vec<Edge>
+        pub vertices: Vec<Vertex>,
+        pub edges: Vec<Edge>
     }
 
     impl Graph {
@@ -251,9 +254,9 @@ pub mod graph_algos {
      * match with the indices of the vertices in the graph struct.
      * 
      * BFS is better suited to search for the shortest path between two points.
-     * Dijkstra's algorithm is a variation of BFS.dynamic
+     * Dijkstra's algorithm is a variation of BFS
      */
-    pub fn bfs(graph: &mut Graph, start: usize) {
+    pub fn bfs(graph: &mut Graph, start: usize) -> Vec<i32> {
         //Initialize data to be used
         let mut distances: Vec<i32> = Vec::new();
         for _i in 0..graph.vertices.len() - 1 {
@@ -276,6 +279,52 @@ pub mod graph_algos {
                 }
             }
         }
+        distances
+    }
+
+    /**
+     * An implementation of Dijkstra's shortest path algorithm
+     * Input: Graph(vertices, edges w/ weights)
+     * Output: shortest paths
+     * 
+     * As mentioned prviously, this algorithm assumes no negative weight values.
+     * For the sake of optimizing for simplicity, I used a pre-made priority queue 
+     * implementation. However, this implementation prioritizes maximum values. This
+     * means that I needed to adapt my implementation to fit this constraint. 
+     * The negative values used in this implementation, therefore, are used as a work-around.
+     */
+    pub fn dijkstra(graph: &Graph, start: Vertex) -> Vec<Option<Vertex>> {
+        let mut dist = vec![];
+        let mut prev: Vec<Option<Vertex>> = Vec::new();
+
+        for i in 0..graph.vertices.len() - 1 {
+            prev[i] = None;
+            if graph.vertices[i] == start {
+                dist[i] = 0;  
+            } else {
+                dist[i] = i32::MIN;
+            }
+        }
+        let mut pq: PriorityQueue<Vertex, i32> = PriorityQueue::new();
+        for v in 0..graph.vertices.len() - 1 {
+            pq.push(graph.vertices[v], dist[v]);
+        }
+
+        while !pq.is_empty() {
+            let (u, _val) = pq.pop().unwrap();
+
+            for edge in graph.edges.iter().filter(|j|{j.from == u}) {
+                let j = graph.vertices.iter().position(|v| {*v == edge.from}).unwrap();
+                let k = graph.vertices.iter().position(|v| {*v == edge.to}).unwrap();
+
+                if dist[k] < dist[j] - edge.weight {
+                    dist[k] =  dist[j] - edge.weight;
+                    prev[k] = Some(graph.vertices[j]);
+                    pq.change_priority(&graph.vertices[k], dist[k]);
+                }
+            }
+        }
+        prev
     }
 
     /**
@@ -543,4 +592,3 @@ pub mod graph_algos {
     pub fn page_rank() {
 
     }
-}

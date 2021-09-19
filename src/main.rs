@@ -1,13 +1,15 @@
 #![recursion_limit="512"]
 pub mod dynamic;
-pub mod graph;
+mod graph;
 pub mod divide_conquer;
 pub mod randomized;
+pub mod max_flow_lp;
 use dynamic::dynamic_algos;
-use graph::graph_algos;
+use graph::*;
 use randomized::randomized_algos;
 use dynamic::dynamic_algos::Item;
 use divide_conquer::dc_algos;
+use max_flow_lp::max_flow_and_lp_algos;
 
 fn main() {
     //lcs
