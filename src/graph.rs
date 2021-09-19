@@ -1,8 +1,12 @@
 pub mod graph_algos {
     extern crate queues;
+    extern crate petgraph;
     use queues::*;
     use std::cmp::{Ord, Eq, PartialEq, PartialOrd};
+    use petgraph::unionfind::UnionFind;
+    use petgraph::matrix_graph::IndexType;
 
+    //Answer element for the 2-SAT algorithm
     pub struct Answer {
         boolean: bool,
         vertex: Vertex
@@ -52,14 +56,15 @@ pub mod graph_algos {
         }
     }
 
+    #[derive(Eq, PartialEq, PartialOrd, Ord, Clone, Copy, Default)]
     pub struct Edge {
         from: Vertex,
         to: Vertex,
-        weight: f32
+        weight: i32
     }
 
     impl Edge {
-        pub fn new(v1: Vertex, v2: Vertex, weight: f32) -> Self {
+        pub fn new(v1: Vertex, v2: Vertex, weight: i32) -> Self {
             Edge {
                 from: v1,
                 to: v2,
@@ -457,8 +462,8 @@ pub mod graph_algos {
                 vertex.id.abs() == first.id.abs() && vertex.id.is_negative() != second.id.is_negative()
             }).unwrap();
 
-            let edge_first = Edge {from: first, to: *from_first, weight: 0 as f32};
-            let edge_second = Edge {from: second, to: *from_second, weight: 0 as f32};
+            let edge_first = Edge {from: first, to: *from_first, weight: 0};
+            let edge_second = Edge {from: second, to: *from_second, weight: 0};
 
             edges.push(edge_first);
             edges.push(edge_second);
@@ -496,8 +501,43 @@ pub mod graph_algos {
         }
     }
 
-    pub fn kruskal_mst() {
+    /**
+     * Kruskal's algorithm is used to find a minimum spanning tree (MST) 
+     * in a given undirected graph. A minimum spanning tree is essentially
+     * the largest tree that can be created while minimizing for 
+     * the sum of the edge weights used
+     * 
+     * For the sake of optimizing for simplicity, I've chosen for this implementation
+     * to assume a directed graph as input, which will be treated as an undirected graph
+     * within the implementation.
+     * 
+     * The output is an array of all edges to be included in the MST
+     */
+    pub fn kruskal_mst(graph: &Graph) -> Vec<Edge> {
+        let mut edges: Vec<Edge> = Vec::new();
+        let mut answers: Vec<Edge> = Vec::new();
+        graph.edges.iter().for_each(|elem| {edges.push(*elem)});
 
+        edges.sort_by(|a, b| {a.weight.cmp(&b.weight)}); //sort edges in ascending order
+        let mut uf: UnionFind<usize> = UnionFind::new(graph.vertices.len());
+        
+        //determine whether edge vertices have been added to the same root
+        //if they have been added to the same root, that means that adding that
+        //the current edge to the MST will cause a cycle, which isn't allowed in a tree
+        for e in edges {
+            let to_index = graph.vertices.iter().position(|y| {*y == e.to}).unwrap();
+            let from_index = graph.vertices.iter().position(|x| {*x == e.from}).unwrap();
+
+            let to_root = uf.find(to_index);
+            let from_root = uf.find(from_index);
+
+            if to_root != from_root {
+                answers.push(e);
+                uf.union(from_root, to_root);
+            }
+        }
+
+        answers
     }
 
     pub fn page_rank() {
