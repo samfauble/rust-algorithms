@@ -1,8 +1,10 @@
 #![recursion_limit="512"]
 pub mod dynamic;
 pub mod graph;
+pub mod randomized;
 use dynamic::dynamic_algos;
 use graph::graph_algos;
+use randomized::randomized_algos;
 use dynamic::dynamic_algos::Item;
 
 fn main() {
