@@ -1,6 +1,6 @@
 pub mod randomized_algos {
     extern crate rand;
-    use rand::{thread_rng, RNG};
+    use rand::{thread_rng};
 
     pub struct ExtEuclidRes {
         alpha: u128,
@@ -49,16 +49,19 @@ pub mod randomized_algos {
     }
 
     pub fn simple_primality(x: u128, rounds: usize) -> bool{
+        let res: bool = true;
+        
         for _i in 0..rounds {
-            let r = thread_rng().gen_range(1, x);
+            let r = rand::random::<u128>();
             let z = x.pow(r);
             let modulo = 1 % r;
-            if z != modulo {
-                return false;
+            if z != modulo as u128 {
+                res = false;
+                break;
             }
         }
 
-        return 3
+        return res;
     }
 
     pub fn carmichael_nums(){}
