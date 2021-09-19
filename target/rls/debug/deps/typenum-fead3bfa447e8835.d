@@ -1,0 +1,18 @@
+c:\Users\samfa\Documents\rustPractice\algorithms\target\rls\debug\deps\typenum-fead3bfa447e8835.rmeta: C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\lib.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\bit.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\int.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\marker_traits.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\operator_aliases.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\private.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\type_operators.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\uint.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\array.rs c:\Users\samfa\Documents\rustPractice\algorithms\target\rls\debug\build\typenum-2c6dfa9a2bde04d0\out\op.rs c:\Users\samfa\Documents\rustPractice\algorithms\target\rls\debug\build\typenum-2c6dfa9a2bde04d0\out\consts.rs
+
+c:\Users\samfa\Documents\rustPractice\algorithms\target\rls\debug\deps\typenum-fead3bfa447e8835.d: C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\lib.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\bit.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\int.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\marker_traits.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\operator_aliases.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\private.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\type_operators.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\uint.rs C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\array.rs c:\Users\samfa\Documents\rustPractice\algorithms\target\rls\debug\build\typenum-2c6dfa9a2bde04d0\out\op.rs c:\Users\samfa\Documents\rustPractice\algorithms\target\rls\debug\build\typenum-2c6dfa9a2bde04d0\out\consts.rs
+
+C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\lib.rs:
+C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\bit.rs:
+C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\int.rs:
+C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\marker_traits.rs:
+C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\operator_aliases.rs:
+C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\private.rs:
+C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\type_operators.rs:
+C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\uint.rs:
+C:\Users\samfa\.cargo\registry\src\github.com-1ecc6299db9ec823\typenum-1.14.0\src\array.rs:
+c:\Users\samfa\Documents\rustPractice\algorithms\target\rls\debug\build\typenum-2c6dfa9a2bde04d0\out\op.rs:
+c:\Users\samfa\Documents\rustPractice\algorithms\target\rls\debug\build\typenum-2c6dfa9a2bde04d0\out\consts.rs:
+
+# env-dep:TYPENUM_BUILD_CONSTS=c:\\Users\\samfa\\Documents\\rustPractice\\algorithms\\target\\rls\\debug\\build\\typenum-2c6dfa9a2bde04d0\\out\\consts.rs
+# env-dep:TYPENUM_BUILD_OP=c:\\Users\\samfa\\Documents\\rustPractice\\algorithms\\target\\rls\\debug\\build\\typenum-2c6dfa9a2bde04d0\\out\\op.rs

@@ -1,7 +1,9 @@
 pub mod dc_algos {
     extern crate bit_vec;
+    extern crate median;
     use bit_vec::BitVec;
     use std::convert::TryInto;
+    use median::heap::*;
 
 
     /**
@@ -34,5 +36,61 @@ pub mod dc_algos {
         //Multiply together
         //2^n * a + 2^(n/2) * (c - a -b) + b
         (2_u128.pow(num_bit as u32) * a) + (2_u128.pow(num_bit as u32 / 2) * (c - a - b)) + b
+    }
+
+    /**
+     * Find k-th smallest value in given array in O(n) time
+     */
+    pub fn fast_select(arr: Vec<u64>, k: usize) -> u64 {
+        let num_groups = (((arr.len() / 5) as f32).ceil()) as u32; 
+        let mut groups: Vec<Vec<u64>> = Vec::new();
+        let mut medians: Vec<u64> = Vec::new();
+        let mut counter = 0;
+
+        //Find an optimal pivot point
+        //divide arr into subarrays of 5 sorted elems
+        for _i in 1..num_groups {
+            let mut g: Vec<u64> = Vec::new();
+            for j in 0..4 {
+                g.push(arr[counter + j]);
+            }
+            g.sort();
+            groups.push(g);
+            counter += 5; 
+        }
+
+        //find the median of each subarray
+        for subarr in groups {
+            let mut filter = median::Filter::<u64>::new(subarr.len());
+            for val in subarr {
+                filter.consume(val);
+            }
+            let med = filter.median();
+            medians.push(med);
+        }
+
+        //recurse to find the optimal pivot
+        let pivot = fast_select(medians, arr.len()/10); 
+
+        //Find the k-th smallest value in arr
+        let mut answer = 0;
+        for elem in arr {
+            let mut bigger = vec![];
+            let mut  equal = vec![];
+            let mut smaller = vec![];
+
+            if elem < pivot {smaller.push(elem);}
+            if elem == pivot {equal.push(elem);}
+            if elem > pivot {bigger.push(elem);}
+
+            if k <= smaller.len() {
+                return fast_select(smaller, k);
+            } else if k > (smaller.len() + equal.len()) {
+                return fast_select(bigger, k);
+            }else{
+                answer = pivot;
+            } 
+        }
+        answer
     }
 }
