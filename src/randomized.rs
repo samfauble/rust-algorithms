@@ -1,7 +1,6 @@
 pub mod randomized_algos {
     extern crate rand;
     use rand::{Rng, thread_rng};
-    use std::ops::Range;
 
     pub struct ExtEuclidRes {
         alpha: u128,
