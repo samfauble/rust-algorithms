@@ -13,6 +13,7 @@ name = "algorithms"
 version = "0.1.0"
 dependencies = [
  "bit-vec",
+ "either",
  "imageproc",
  "median",
  "num 0.4.0",

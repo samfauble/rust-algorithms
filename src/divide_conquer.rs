@@ -3,6 +3,8 @@ pub mod dc_algos {
     extern crate median;
     extern crate imageproc;
     extern crate num;
+    extern crate either;
+    use either::*;
     use num::complex::Complex;
     use imageproc::hough::PolarLine;
     use std::f64::consts::PI;
@@ -100,10 +102,18 @@ pub mod dc_algos {
     }
 
     /**
-     * given a coefficient_vec (a0, a1,...,an-1) for polynomial A(x) = a0 + a1x +...+ an-1 x^n-1
-     * Assumptions: n = 2^k
+     * Fast Fourier Transforms(FFTs) are used for a variety of purposes such as signal and image processing.
+     * FFTs are used to multiply polynomials of length n. They do so by converting from a coefficient notation to value notation
+     * and then evaluating the product therein.
+     * 
+     * The inverse FFT is used to convert the value notation solution back into coefficient notation. 
+     * 
+     * Given a coefficient_vec (a0, a1,...,an-1) for polynomial A(x) = a0 + a1x +...+ an-1 x^n-1
+     * Assumptions: n = 2^k (this lets us use the +/- rule)
      */
-    pub fn fft(coefficient_vec: Vec<i32>, omega: (f64, f64)) -> Vec<(f64, f64)> {
+    pub fn fft(coefficient_vec: Vec<Complex<f64>>, omega: (f64, f64)) -> Either<Vec<Complex<f64>>, Complex<f64>> {
+        
+        //Evaluates a polar coordinate with a given exponent
         let omega_to_exp = |o: &(f64, f64), exp: u32| -> (f64, f64) {
             let mut sol = *o;
             for _e in 1..exp {
@@ -113,22 +123,26 @@ pub mod dc_algos {
             sol
         };
 
+        //Evaluates the polynomial expression
         let eval_poly = |x: &(f64, f64)| -> Vec<(f64, f64)> {
             let mut agg = vec![];
             for i in 0..coefficient_vec.len() - 1 {
                 let mut new_omega = omega_to_exp(x, i as u32);
-                new_omega.0 *= coefficient_vec[i] as f64;
+                new_omega.0 *= Complex::to_polar(coefficient_vec[i]).0;
+                new_omega.1 *= Complex::to_polar(coefficient_vec[i]).1;
                 agg.push(new_omega);
             }
             agg
         };
 
-        if coefficient_vec.len() == 1 {return eval_poly(&omega);}
+        //base case
+        if coefficient_vec.len() == 1 {return Right(coefficient_vec[0]);}
 
-        let mut even = vec![];
-        let mut odd = vec![];
+        let mut even = vec![];                                  //coefficients with even indices
+        let mut odd = vec![];                                   //coefficients with odd indices
         let mut toggle = true;
 
+        //populate even and odd
         coefficient_vec.iter().for_each(|val| {
             if toggle {
                 even.push(*val);
@@ -138,18 +152,25 @@ pub mod dc_algos {
             toggle = !toggle;
         });
 
+        //Square polar coordinate input
         let next_omega = omega_to_exp(&omega, 2);
 
-        let evens = fft(even, next_omega);
-        let odds = fft(odd, next_omega);
+        //recurse
+        let evens = fft(even, next_omega).left().unwrap();
+        let odds = fft(odd, next_omega).left().unwrap();
 
-        let mut first_half = vec![];
-        let mut second_half = vec![];
+        let mut first_half = vec![];                                            //first half of solution array
+        let mut second_half = vec![];                                           //second half of solution array
 
+        //first_half[j] = evens[j] + (omega^j * odds[j]
+        //second_half[j] = evens[j] - (omega^j * odds[j]
         for j in 0..(coefficient_vec.len() / 2) - 1 {
             let j_omega = omega_to_exp(&omega, j as u32);
-            let product = ((j_omega.0 * odds[j].0), (j_omega.1 + odds[j].1));
-            let even = Complex::from_polar(evens[j].0, evens[j].1);
+            let odd_polar = Complex::to_polar(odds[j]);
+            let even_polar = Complex::to_polar(evens[j]);
+
+            let product = ((j_omega.0 * odd_polar.0), (j_omega.1 + odd_polar.1));
+            let even = Complex::from_polar(even_polar.0, even_polar.1);
             let c_product = Complex::from_polar(product.0, product.1);
             
             let mut c_first = Complex::new(0.0, 0.0);
@@ -159,11 +180,30 @@ pub mod dc_algos {
             c_second.re = even.re - c_product.re;
             c_second.im = even.im - c_product.im;
 
-            first_half.push(Complex::to_polar(c_first));
-            second_half.push(Complex::to_polar(c_second));
+            first_half.push(c_first);
+            second_half.push(c_second);
         }
         
         first_half.append(&mut second_half);
-        first_half
+        Left(first_half)
+    }
+
+    /**
+     * The inverse of FFT, assumes an inverse omega as input and val_vec is in value notation
+     */
+    pub fn i_fft(val_vec: Vec<Complex<f64>>, omega: (f64, f64)) -> Vec<Complex<f64>> {
+        let fft_res = fft(val_vec, omega).left().unwrap();
+        let mut scaled_vec = vec![];
+        let scalar = 1 / (fft_res.len() as i32);
+        
+        for c in fft_res {
+            let mut p = Complex::to_polar(c);
+            p.0 *= scalar as f64;
+            p.1 += scalar as f64;
+            let cx = Complex::from_polar(p.0, p.1);
+            scaled_vec.push(cx);
+        }
+
+        scaled_vec
     }
 }
