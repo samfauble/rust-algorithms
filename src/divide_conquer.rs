@@ -1,6 +1,11 @@
 pub mod dc_algos {
     extern crate bit_vec;
     extern crate median;
+    extern crate imageproc;
+    extern crate num;
+    use num::complex::Complex;
+    use imageproc::hough::PolarLine;
+    use std::f64::consts::PI;
     use bit_vec::BitVec;
     use std::convert::TryInto;
     use median::heap::*;
@@ -92,5 +97,73 @@ pub mod dc_algos {
             } 
         }
         answer
+    }
+
+    /**
+     * given a coefficient_vec (a0, a1,...,an-1) for polynomial A(x) = a0 + a1x +...+ an-1 x^n-1
+     * Assumptions: n = 2^k
+     */
+    pub fn fft(coefficient_vec: Vec<i32>, omega: (f64, f64)) -> Vec<(f64, f64)> {
+        let omega_to_exp = |o: &(f64, f64), exp: u32| -> (f64, f64) {
+            let mut sol = *o;
+            for _e in 1..exp {
+                sol.0 *= o.0;
+                sol.1 += o.1;
+            }
+            sol
+        };
+
+        let eval_poly = |x: &(f64, f64)| -> Vec<(f64, f64)> {
+            let mut agg = vec![];
+            for i in 0..coefficient_vec.len() - 1 {
+                let mut new_omega = omega_to_exp(x, i as u32);
+                new_omega.0 *= coefficient_vec[i] as f64;
+                agg.push(new_omega);
+            }
+            agg
+        };
+
+        if coefficient_vec.len() == 1 {return eval_poly(&omega);}
+
+        let mut even = vec![];
+        let mut odd = vec![];
+        let mut toggle = true;
+
+        coefficient_vec.iter().for_each(|val| {
+            if toggle {
+                even.push(*val);
+            } else {
+                odd.push(*val);
+            }
+            toggle = !toggle;
+        });
+
+        let next_omega = omega_to_exp(&omega, 2);
+
+        let evens = fft(even, next_omega);
+        let odds = fft(odd, next_omega);
+
+        let mut first_half = vec![];
+        let mut second_half = vec![];
+
+        for j in 0..(coefficient_vec.len() / 2) - 1 {
+            let j_omega = omega_to_exp(&omega, j as u32);
+            let product = ((j_omega.0 * odds[j].0), (j_omega.1 + odds[j].1));
+            let even = Complex::from_polar(evens[j].0, evens[j].1);
+            let c_product = Complex::from_polar(product.0, product.1);
+            
+            let mut c_first = Complex::new(0.0, 0.0);
+            let mut c_second = Complex::new(0.0, 0.0);
+            c_first.re = even.re + c_product.re;
+            c_first.im = even.im + c_product.im;
+            c_second.re = even.re - c_product.re;
+            c_second.im = even.im - c_product.im;
+
+            first_half.push(Complex::to_polar(c_first));
+            second_half.push(Complex::to_polar(c_second));
+        }
+        
+        first_half.append(&mut second_half);
+        first_half
     }
 }
