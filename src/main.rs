@@ -1,6 +1,7 @@
 #![recursion_limit="512"]
 pub mod dynamic;
 mod graph;
+mod rsa;
 pub mod divide_conquer;
 pub mod randomized;
 pub mod max_flow_lp;
@@ -10,6 +11,7 @@ use randomized::randomized_algos;
 use dynamic::dynamic_algos::Item;
 use divide_conquer::dc_algos;
 use max_flow_lp::max_flow_and_lp_algos;
+use rsa::*;
 
 fn main() {
     //lcs

@@ -3,9 +3,9 @@ pub mod randomized_algos {
     use rand::{Rng, thread_rng};
 
     pub struct ExtEuclidRes {
-        alpha: u128,
+        pub alpha: u128,
         beta: u128,
-        gcd: u128
+        pub gcd: u128
     }
 
     /**
@@ -64,13 +64,13 @@ pub mod randomized_algos {
      * 
      * For this implementation, true is returned if x might be prime.
      */
-    pub fn simple_primality(x: u32, rounds: usize) -> bool{
+    pub fn simple_primality(x: &u128, rounds: usize) -> bool{
         let mut res: bool = true;
         
         for _i in 0..rounds {
-            let r = thread_rng().gen_range(1..x);
-            let z = mod_exponent(x as f64, (r-1) as f64, r as f64);
-            if z as u64 != (1 % r) as u64 {
+            let r = thread_rng().gen_range(1..*x);
+            let z = mod_exponent(*x as f64, (r-1) as f64, r as f64);
+            if z as u128 != (1 % r) as u128 {
                 res = false;
                 break;
             }
